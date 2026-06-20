@@ -1,25 +1,62 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
-class TimeSeriesPoint(BaseModel):
-    timestamp: str
-    label: str
-    value: int
-    successCount: Optional[int] = None
-    errorCount: Optional[int] = None
 
-class ResponseCodeEntry(BaseModel):
-    code: str
-    label: str
+class ApprovalBreakdown(BaseModel):
+    tran_type: str
+    rate: float
+
+
+class ApprovalRateData(BaseModel):
+    rate: float
+    change: float
+    breakdown: List[ApprovalBreakdown]
+
+
+class FailureCategory(BaseModel):
+    category: str
     count: int
-    percentage: float
-    color: Optional[str] = None
+    pct: float
 
-class DashboardMetrics(BaseModel):
-    totalTransactions: int
-    successRate: float
-    errorCount: int
-    avgResponseTime: int
-    transactionsOverTime: List[TimeSeriesPoint]
-    responseCodeDistribution: List[ResponseCodeEntry]
-    recentTransactions: List[Dict[str, Any]]
+
+class FailureAnalysisData(BaseModel):
+    total: int
+    change: float
+    top_category: str
+    top_category_pct: float
+    categories: List[FailureCategory]
+
+
+class RcEntry(BaseModel):
+    rc: str
+    count: int
+    pct: float
+
+
+class RcDistributionData(BaseModel):
+    top_rc: str
+    top_rc_pct: float
+    entries: List[RcEntry]
+
+
+class LatencyData(BaseModel):
+    p50: int
+    p95: int
+    avg: int
+    change: float
+    sla_ok: bool
+
+
+class ApprovalTrendPoint(BaseModel):
+    timestamp: str
+    approval_pct: float
+    decline_pct: float
+    total: int
+
+
+class DashboardAnalytics(BaseModel):
+    approval_rate: ApprovalRateData
+    failure_analysis: FailureAnalysisData
+    rc_distribution: RcDistributionData
+    latency: LatencyData
+    approval_trend: List[ApprovalTrendPoint]

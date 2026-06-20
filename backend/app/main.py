@@ -1,33 +1,43 @@
+"""
+ISO 8583 AI Log Analyzer — FastAPI Application
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import engine, Base
+from app.database.session import init_db
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Initialize database tables
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Set up CORS for frontend
+# CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For development. In production, use specific origins like "http://localhost:3000"
+    allow_origins=["*"],  # Development. In production, restrict to frontend URL.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-from app.api.v1 import upload, dashboard, transactions, validation, reports
+# Register routes
+from app.api.analyze import router as analyze_router
 
-app.include_router(upload.router, prefix=f"{settings.API_V1_STR}/upload", tags=["Upload"])
-app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["Dashboard"])
-app.include_router(transactions.router, prefix=f"{settings.API_V1_STR}/transactions", tags=["Transactions"])
-app.include_router(validation.router, prefix=f"{settings.API_V1_STR}/validations", tags=["Validation"])
-app.include_router(reports.router, prefix=f"{settings.API_V1_STR}/reports", tags=["Reports"])
+app.include_router(
+    analyze_router,
+    prefix=settings.API_V1_STR,
+    tags=["Analysis"],
+)
+
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the ISO 8583 Log Analyzer API"}
+    return {
+        "message": "ISO 8583 AI Log Analyzer API",
+        "version": "2.0.0",
+        "docs": f"{settings.API_V1_STR}/openapi.json",
+    }
